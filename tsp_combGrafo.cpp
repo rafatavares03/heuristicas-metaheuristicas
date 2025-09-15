@@ -56,7 +56,11 @@ int main() {
       dados[i][1] = v2;
       dados[i][2] = peso;
   }
+  clock_t inicio = clock();
   vector<vector<pair<int,int>>> grafo = listaDeAdjacencia(vertices, dados);
   caminhos(grafo, array, disponiveis);
+  clock_t fim = clock();
+  double duracao = static_cast<double>(fim - inicio) / CLOCKS_PER_SEC;
+  cout << "Tempo de execução: " << duracao << " segundos." << endl;
   return 0;
 }
