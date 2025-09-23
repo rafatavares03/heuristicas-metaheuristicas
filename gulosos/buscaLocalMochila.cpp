@@ -23,6 +23,50 @@ string solucaoAleatoria() {
   return str;
 }
 
+string solucaoInicialLeves() {
+  vector<pair<int, int>> custoBeneficio(itens.size());
+  for(int i = 0; i < itens.size(); i++) {
+    custoBeneficio[i] = {i, itens[i].second};
+  }
+  sort(custoBeneficio.begin(), custoBeneficio.end(), [](pair<int, int>& a, pair<int, int>& b) {
+    return a.second < b.second;
+  });
+
+  int espaco = 0;
+  string solucao = "";
+  for(int i = 0; i < itens.size(); i++) solucao += "0";
+  for(int i = 0; i < itens.size(); i++) {
+    if(itens[custoBeneficio[i].first].second + espaco <= capacidade) {
+      solucao[custoBeneficio[i].first] = '1';
+      espaco += itens[custoBeneficio[i].first].second;
+    }
+  }
+  
+  return solucao;
+}
+
+string solucaoInicialCustoBeneficio() {
+  vector<pair<int,double>> custoBeneficio(itens.size());
+  for(int i = 0; i < itens.size(); i++) {
+    custoBeneficio[i] = {i, (double)itens[i].second / itens[i].first};
+  }
+  sort(custoBeneficio.begin(), custoBeneficio.end(), [](pair<int, double>& a, pair<int, double>& b) {
+    return a.second < b.second;
+  });
+
+  int espaco = 0;
+  string solucao = "";
+  for(int i = 0; i < itens.size(); i++) solucao += "0";
+  for(int i = 0; i < itens.size(); i++) {
+    if(itens[custoBeneficio[i].first].second + espaco <= capacidade) {
+      solucao[custoBeneficio[i].first] = '1';
+      espaco += itens[custoBeneficio[i].first].second;
+    }
+  }
+
+  return solucao;
+}
+
 int calculaLucro(string solucao) {
   int lucro = 0;
   for(int i = 0; i < solucao.length(); i++) {
@@ -39,8 +83,7 @@ int calculaCapacidade(string solucao) {
   return capacidade;
 }
 
-string buscaLocal() {
-  string solucao = solucaoAleatoria();
+string buscaLocal(string solucao) {
   int lucro = calculaLucro(solucao);
   bool earlyStop = false;
   int semMelhoria = 0;
@@ -79,9 +122,24 @@ int main() {
     cin >> lucro >> peso;
     itens.push_back({lucro, peso});
   }
-  string solucao = buscaLocal();
-  cout << "Solução: " << solucao << endl;
+  string aleatoria = solucaoAleatoria();
+  string leves = solucaoInicialLeves();
+  string custoBeneficio = solucaoInicialCustoBeneficio();
+
+  string solucao = buscaLocal(aleatoria);
+  cout << "Solução inicial aleatória: " << endl << solucao << endl;
+  cout << "Lucro: " << calculaLucro(solucao) << endl;
+  cout << "Capacidade: " << calculaCapacidade(solucao) << endl << endl;
+
+  solucao = buscaLocal(leves);
+  cout << "Solução inicial itens mais leves: " << endl << solucao << endl;
+  cout << "Lucro: " << calculaLucro(solucao) << endl;
+  cout << "Capacidade: " << calculaCapacidade(solucao) << endl << endl;
+
+  solucao = buscaLocal(custoBeneficio);
+  cout << "Solução inicial custo benéficio: " << endl << solucao << endl;
   cout << "Lucro: " << calculaLucro(solucao) << endl;
   cout << "Capacidade: " << calculaCapacidade(solucao) << endl;
+
   return 0;
 }
