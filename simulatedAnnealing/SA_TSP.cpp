@@ -25,23 +25,15 @@ vector<vector<int>> matriz() {
   return g;
 }
 
-// Guloso: vizinhos mais próximos
 vector<int> solucaoInicial() {
-  vector<int> caminho;
-  vector<bool> vertices(grafo.size(), false);
-  for(int i = 1; i < grafo.size(); i++) vertices.push_back(i);
-  caminho.push_back(0);
-  vertices[0] = true;
-  while(caminho.size() < grafo.size()) {
-    int menorDistancia = 0x3f3f3f, v = caminho.size() - 1, u = -1;
-    for(int i = 0; i < grafo.size(); i++) {
-      if(grafo[caminho[v]][i] < menorDistancia && !vertices[i]) {
-        menorDistancia = grafo[caminho[v]][i];
-        u = i;
-      }
-    }
-    caminho.push_back(u);
-    vertices[u] = true;
+  vector<int> vertices, caminho;
+  for(int i = 0; i < grafo.size(); i++) vertices.push_back(i);
+  srand(time(0));
+  while(!vertices.empty()) {
+    int v = rand() % vertices.size();
+    caminho.push_back(vertices[v]);
+    auto fim = remove(vertices.begin(), vertices.end(), vertices[v]);
+    vertices.erase(fim, vertices.end());
   }
   return caminho;
 }
@@ -64,46 +56,10 @@ vector<int> swap(vector<int> array, int i, int j) {
   return aux;
 }
 
-vector<int> buscaLocal(vector<int> solucao) {
-  int custo = calculaCusto(solucao);
-  bool earlyStop = false;
-  int it = 0;
-  while(it < 1e6 && !earlyStop) {
-    int i = 0;
-    int custoInicial = custo;
-    while(i < solucao.size()) {
-      vector<int> solucaoAux(solucao);
-      for(int j = i+1; j < solucao.size(); j++) {
-        solucaoAux = swap(solucaoAux, i, j);
-        int custoAux = calculaCusto(solucaoAux);
-        if(custoAux < custo) {
-          solucao = swap(solucao,i,j);
-          custo = custoAux;
-          i = solucao.size();
-          j = solucao.size();
-        } else{
-          solucaoAux = swap(solucaoAux, i, j);
-        }
-      }
-      i++;
-    }
-    if(custoInicial == custo) {
-      earlyStop = true;
-    }
-    it++;
-  }
-  return solucao;
-}
-
-double probabilidade(int custo, int novoCusto, int t) {
-  double expoente = (double)(custo - novoCusto) / t;
-  return 1 / (1 + exp(expoente));
-}
-
 vector<int> simulatedAnnealing() {
   vector<int> solucao = solucaoInicial();
-  vector<int> melhorSolucao;
-  double t = 1e9;
+  vector<int> melhorSolucao(solucao);
+  double t = 1e5;
   srand(time(0));
   while(t > 0.01) {
     int i = 0;
@@ -116,19 +72,18 @@ vector<int> simulatedAnnealing() {
       int custoAux = calculaCusto(aux);
       int custoSol = calculaCusto(solucao);
 
-      if(custoAux > custoSol) {
+      if(custoAux < custoSol) {
         solucao = aux;
-        if(melhorSolucao.empty() || custoAux < calculaCusto(melhorSolucao)) {
-          cout << "entrou" << endl;
+        if(custoAux < calculaCusto(melhorSolucao)) {
           melhorSolucao = solucao;
         }
-      } else if (rand() % 2 < exp((custoAux - custoSol)/t)) {
+      } else if (rand() % 2 > exp((custoAux - custoSol)/t)) {
         solucao = aux;
       }
 
       i++;
     }
-    t = 0.85 * t;
+    t = 0.90 * t;
   }
   return melhorSolucao;
 }
