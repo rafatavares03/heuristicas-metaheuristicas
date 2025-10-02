@@ -3,7 +3,7 @@
 
 using namespace std;
 
-int quantidadeDeItens, capacidade;
+int quantidadeDeItens, capacidade, p;
 vector<pair<int, int>> itens;
 
 string solucaoInicial() {
@@ -28,14 +28,6 @@ string solucaoInicial() {
   return solucao;
 }
 
-int calculaLucro(string solucao) {
-  int lucro = 0;
-  for(int i = 0; i < solucao.length(); i++) {
-    if(solucao[i] == '1') lucro += itens[i].first;
-  }
-  return lucro;
-}
-
 int calculaCapacidade(string solucao) {
   int capacidade = 0;
   for(int i = 0; i < solucao.length(); i++) {
@@ -44,16 +36,22 @@ int calculaCapacidade(string solucao) {
   return capacidade;
 }
 
+int calculaLucro(string solucao) {
+  int lucro = 0;
+  int solucaoCap = calculaCapacidade(solucao);
+  for(int i = 0; i < solucao.length(); i++) {
+    if(solucao[i] == '1') lucro += itens[i].first;
+  }
+  lucro -= (p * max(0, solucaoCap - capacidade));
+  return lucro;
+}
+
 string buscaTabu() {
     string solucao = solucaoInicial();
     string melhorSolucao = solucao;
     int lucro = calculaLucro(solucao);
     int melhorLucro = lucro;
     int it = 0; // condicao de parada: iteracões sem melhora;
-    int p = 0;
-    for(int i = 0; i < solucao.length(); i++) {
-        p += itens[i].second;
-    }
     
     vector<int> t(solucao.length(), 0);
     while(it < 100) {
@@ -78,8 +76,12 @@ int main(){
     cin >> lucro >> peso;
     itens.push_back({lucro, peso});
   }
+  for(int i = 0; i < quantidadeDeItens; i++) {
+    p += itens[i].second;
+  }
   cout << "Solução inicial:" << endl;
   cout << solucaoInicial() << endl;
+  cout << calculaLucro("01010110") << endl;
 
   return 0;
 }
