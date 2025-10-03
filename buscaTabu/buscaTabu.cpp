@@ -42,7 +42,8 @@ int calculaLucro(string solucao) {
   for(int i = 0; i < solucao.length(); i++) {
     if(solucao[i] == '1') lucro += itens[i].first;
   }
-  lucro -= (p * max(0, solucaoCap - capacidade));
+  cout << "p: " << p << endl;
+  lucro = lucro - (p * max(0, solucaoCap - capacidade));
   return lucro;
 }
 
@@ -77,11 +78,11 @@ int main(){
     itens.push_back({lucro, peso});
   }
   for(int i = 0; i < quantidadeDeItens; i++) {
-    p += itens[i].second;
+    p += itens[i].first;
   }
   cout << "Solução inicial:" << endl;
-  cout << solucaoInicial() << endl;
-  cout << calculaLucro("01010110") << endl;
+  //cout << solucaoInicial() << endl;
+  cout << calculaLucro("10011110") << endl;
 
   return 0;
 }
