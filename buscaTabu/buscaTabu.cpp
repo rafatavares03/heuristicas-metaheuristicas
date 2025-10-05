@@ -62,6 +62,22 @@ vector<pair<int, int>> geraVizinhancaOrdenada(string solucao) {
   return vizinhos;
 }
 
+int aspiracaoPorDefault(vector<pair<int, int>> vizinhos,vector<int> t, int duracaoTabu) {
+  int k = 0;
+  int menorTabu = duracaoTabu;
+  int vizinho = -1;
+  while(vizinhos[k].second > 0 && k < vizinhos.size()) {
+    int bit = vizinhos[k].first;
+    int lucroBit = vizinhos[k].second;
+    if(t[bit] < menorTabu) {
+      menorTabu = t[bit];
+      vizinho = k;
+    }
+    k++;
+  }
+  return vizinho;
+}
+
 string buscaTabu() {
   string solucao = solucaoInicial();
   string melhorSolucao = solucao;
@@ -81,7 +97,7 @@ string buscaTabu() {
       int bit = vizinhos[j].first;
       int lucroBit = vizinhos[j].second;
       if(t[bit] > 0) {
-        if(lucroBit > melhorLucro) {
+        if(lucroBit > melhorLucro) { // aspiração regional
           melhorVizinho = bit;
           vizinhoLucro = lucroBit;
         }
@@ -93,20 +109,11 @@ string buscaTabu() {
     }
 
     if(melhorVizinho < 0) {
-      int k = 0;
-      int menorTabu = duracaoTabu;
-      while(vizinhos[k].second > 0 && k < vizinhos.size()) {
-        int bit = vizinhos[k].first;
-        int lucroBit = vizinhos[k].second;
-        if(t[bit] < menorTabu) {
-          melhorVizinho = bit;
-          vizinhoLucro = lucroBit;
-          menorTabu = t[bit];
-        }
-        k++;
-      }
+      int indice = aspiracaoPorDefault(vizinhos, t, duracaoTabu);
+      melhorVizinho = vizinhos[indice].first;
+      vizinhoLucro = vizinhos[indice].second;
     }
-    cout << melhorVizinho << " " << lucro<< endl;
+
     for(int i = 0; i < t.size(); i++) {
       if(t[i] > 0) t[i]--;
     }
@@ -136,12 +143,10 @@ int main(){
   for(int i = 0; i < quantidadeDeItens; i++) {
     p += itens[i].first;
   }
-  cout << "Solução inicial:" << endl;
   string solucao = buscaTabu();
+  cout << "Solução: ";
   cout << solucao << endl;
-  cout << calculaLucro(solucao) << endl;
-  //cout << solucaoInicial() << endl;
-  //cout << calculaLucro("10011110") << endl;
+  cout << "Lucro: " << calculaLucro(solucao) << endl;
 
   return 0;
 }
