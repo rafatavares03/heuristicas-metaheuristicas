@@ -59,11 +59,31 @@ vector<int> swap(vector<int> array, int i, int j) {
 vector<int> construcaoGulosaAleatoria(double alpha) {
   vector<int> solucao;
   vector<int> candidatos(grafo.size());
-  int melhor = -1, pior;
-
+  
   solucao.push_back(0);
   for(int i = 1; i < grafo.size(); i++) candidatos[i] = i;
-  while()
+  while(!candidatos.empty()){
+    int maior = -INF, menor = INF;
+    vector<pair<int, int>> custos;
+    for(int i = 0; i < candidatos.size(); i++) {
+      vector<int> aux(solucao);
+      aux.push_back(candidatos[i]);
+
+      int custoAux = calculaCusto(aux);
+      maior = (custoAux > maior) ? custoAux : maior;
+      menor = (custoAux < menor) ? custoAux : menor;
+
+      custos.push_back({candidatos[i], custoAux});
+      aux.pop_back();
+    }
+    int teto = menor + (alpha * (maior - menor));
+    vector<int> lrc;
+    for(int i = 0; i < candidatos.size(); i++) {
+      if(custos[i].second <= teto) {
+        lrc.push_back(custos[i].first);
+      }
+    }
+  }
 
  return solucao;
 }
@@ -114,6 +134,7 @@ vector<int> GRASP() {
 }
 
 int main() {
+  
   int v, x, y;
   while(cin >> v >> x >> y) {
     coordenadas.push_back({v,x,y});
