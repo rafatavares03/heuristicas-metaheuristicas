@@ -27,6 +27,7 @@ vector<vector<int>> matriz() {
 }
 
 int calculaCusto(vector<int> caminho) {
+  if(caminho.empty()) return 0;
   int custo = 0;
   for(int i = 0; i < caminho.size()-1; i++) {
     custo += grafo[caminho[i]][caminho[i+1]];
@@ -56,17 +57,25 @@ vector<int> swap(vector<int> array, int i, int j) {
   return aux;
 }
 
+int random(int lowerbound, int upperbound) {
+  random_device rd;
+  mt19937 gen(rd());
+  uniform_int_distribution<> distrib(lowerbound, upperbound);
+
+  int numero = distrib(gen);
+  return numero;
+}
+
 vector<int> construcaoGulosaAleatoria(double alpha) {
   vector<int> solucao;
-  vector<int> candidatos(grafo.size());
-  
   solucao.push_back(0);
-  for(int i = 1; i < grafo.size(); i++) candidatos[i] = i;
+  vector<int> candidatos(grafo.size()-1);
+  for(int i = 0; i < candidatos.size(); i++) candidatos[i] = i+1;
   while(!candidatos.empty()){
     int maior = -INF, menor = INF;
     vector<pair<int, int>> custos;
+    vector<int> aux(solucao);
     for(int i = 0; i < candidatos.size(); i++) {
-      vector<int> aux(solucao);
       aux.push_back(candidatos[i]);
 
       int custoAux = calculaCusto(aux);
@@ -76,6 +85,7 @@ vector<int> construcaoGulosaAleatoria(double alpha) {
       custos.push_back({candidatos[i], custoAux});
       aux.pop_back();
     }
+
     int teto = menor + (alpha * (maior - menor));
     vector<int> lrc;
     for(int i = 0; i < candidatos.size(); i++) {
@@ -83,9 +93,14 @@ vector<int> construcaoGulosaAleatoria(double alpha) {
         lrc.push_back(custos[i].first);
       }
     }
+    
+    int v = random(0, lrc.size()-1);
+    solucao.push_back(lrc[v]);
+    auto fim = remove(candidatos.begin(), candidatos.end(), lrc[v]);
+    candidatos.erase(fim, candidatos.end());
   }
 
- return solucao;
+  return solucao;
 }
 
 vector<int> buscaLocal(vector<int> solucao) {
@@ -120,21 +135,25 @@ vector<int> buscaLocal(vector<int> solucao) {
 }
 
 vector<int> GRASP() {
-    vector<int> melhorSolucao;
-    int it = 0;
-    while(it < 100) {
-        vector<int> solucao = construcaoGulosaAleatoria(0.3);
-        solucao = buscaLocal(solucao);
-        if(calculaCusto(solucao) > calculaCusto(melhorSolucao)) {
-            melhorSolucao = solucao;
-        }
-        it++;
+  vector<int> melhorSolucao;
+  int melhorCusto = INF;
+  int it = 0;
+  while(it < 30) {
+    vector<int> solucao = construcaoGulosaAleatoria(0.3);
+    solucao = buscaLocal(solucao);
+    int custo = calculaCusto(solucao);
+    if(custo < melhorCusto) {
+      melhorSolucao = solucao;
+      melhorCusto = custo;
     }
-    return melhorSolucao;
+    it++;
+  }
+  return melhorSolucao;
 }
 
 int main() {
   
+  srand(time(0));
   int v, x, y;
   while(cin >> v >> x >> y) {
     coordenadas.push_back({v,x,y});
