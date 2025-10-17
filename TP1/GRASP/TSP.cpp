@@ -26,6 +26,14 @@ vector<vector<int>> matriz() {
   return g;
 }
 
+void lerEntrada() {
+  int v, x, y;
+  while(cin >> v >> x >> y) {
+    coordenadas.push_back({v,x,y});
+  }
+  grafo = matriz();
+}
+
 int calculaCusto(vector<int> caminho) {
   if(caminho.empty()) return 0;
   int custo = 0;
@@ -36,17 +44,13 @@ int calculaCusto(vector<int> caminho) {
   return custo;
 }
 
-vector<int> solucaoAleatoria() {
-  vector<int> vertices, caminho;
-  for(int i = 0; i < grafo.size(); i++) vertices.push_back(i);
-  srand(time(0));
-  while(!vertices.empty()) {
-    int v = rand() % vertices.size();
-    caminho.push_back(vertices[v]);
-    auto fim = remove(vertices.begin(), vertices.end(), vertices[v]);
-    vertices.erase(fim, vertices.end());
+void printSolucao(vector<int> solucao) {
+  cout << "Solução: ";
+  for(int i = 0; i < solucao.size(); i++) {
+    cout << solucao[i]+1 << " ";
   }
-  return caminho;
+  cout << solucao[0]+1 << endl;
+  cout << "Custo: "<< calculaCusto(solucao) << endl;
 }
 
 vector<int> swap(vector<int> array, int i, int j) {
@@ -152,17 +156,8 @@ vector<int> GRASP() {
 }
 
 int main() {
-  int v, x, y;
-  while(cin >> v >> x >> y) {
-    coordenadas.push_back({v,x,y});
-  }
-  grafo = matriz();
-  vector<int> caminho = GRASP();
-  cout << "Solução: ";
-  for(int i = 0; i < caminho.size(); i++) {
-    cout << caminho[i]+1 << " ";
-  }
-  cout << caminho[0]+1 << endl;
-  cout << "Custo: "<< calculaCusto(caminho) << endl;
+  lerEntrada();
+  vector<int> solucao = GRASP();
+  printSolucao(solucao);
   return 0;
 }
