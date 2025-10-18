@@ -129,10 +129,8 @@ vector<int> buscaTabu() {
     }
     for(int i = 0; i < t.size(); i++) {
       for(int j = i+1; j < t.size(); j++) {
-        //cout << t[i][j] << " ";
         if(t[i][j] > 0) t[i][j]--;
       }
-      //cout << endl;
     }
     t[min(u,v)][max(u,v)] = duracaoTabu;
     solucao = melhorTroca;
