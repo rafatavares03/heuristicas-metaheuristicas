@@ -6,6 +6,18 @@ using namespace std;
 int quantidadeDeItens, capacidade, p;
 vector<pair<int, int>> itens;
 
+void lerEntrada() {
+  cin >> quantidadeDeItens >> capacidade;
+  for(int i = 0; i < quantidadeDeItens; i++) {
+    int lucro, peso;
+    cin >> lucro >> peso;
+    itens.push_back({lucro, peso});
+  }
+  for(int i = 0; i < quantidadeDeItens; i++) {
+    p += itens[i].first;
+  }
+}
+
 string solucaoInicial() {
   vector<pair<int,double>> custoBeneficio(itens.size());
   for(int i = 0; i < itens.size(); i++) {
@@ -44,6 +56,12 @@ int calculaLucro(string solucao) {
   }
   lucro = lucro - (p * max(0, solucaoCap - capacidade));
   return lucro;
+}
+
+void printSolucao(string solucao) {
+  cout << "Solução: ";
+  cout << solucao << endl;
+  cout << "Lucro: " << calculaLucro(solucao) << endl;
 }
 
 vector<pair<int, int>> geraVizinhancaOrdenada(string solucao) {
@@ -134,19 +152,8 @@ string buscaTabu() {
 }
 
 int main(){
-  cin >> quantidadeDeItens >> capacidade;
-  for(int i = 0; i < quantidadeDeItens; i++) {
-    int lucro, peso;
-    cin >> lucro >> peso;
-    itens.push_back({lucro, peso});
-  }
-  for(int i = 0; i < quantidadeDeItens; i++) {
-    p += itens[i].first;
-  }
+  lerEntrada();
   string solucao = buscaTabu();
-  cout << "Solução: ";
-  cout << solucao << endl;
-  cout << "Lucro: " << calculaLucro(solucao) << endl;
-
+  printSolucao(solucao);
   return 0;
 }
