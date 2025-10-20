@@ -1,8 +1,10 @@
 #include <bits/stdc++.h>
+#include <chrono>
 #define endl '\n'
 #define INF 0x3f3f3f3f
 
 using namespace std;
+using namespace std::chrono;
 
 int quantidadeDeItens, capacidade;
 vector<pair<int, int>> itens;
@@ -32,10 +34,20 @@ int calculaCapacidade(string solucao) {
   return capacidade;
 }
 
-void printSolucao(string solucao) {
-  cout << "Solução: " << solucao << endl;
+void printSolucaoCSV(string solucao, duration<double> tempo) {
+  cout << solucao << "," << calculaLucro(solucao) << "," << calculaCapacidade(solucao) << ",";
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
+}
+
+void printSolucao(string solucao, duration<double> tempo) {
+  cout << "Solução: ";
+  cout << solucao << endl;
   cout << "Lucro: " << calculaLucro(solucao) << endl;
   cout << "Capacidade: " << calculaCapacidade(solucao) << endl;
+  cout << "Tempo de processamento: ";
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
 }
 
 int random(int lowerbound, int upperbound) {
@@ -126,9 +138,12 @@ string GRASP() {
   return melhorSolucao;
 }
 
-int main() {
+int main(){
   lerEntrada();
+  auto inicio = high_resolution_clock::now();
   string solucao = GRASP();
-  printSolucao(solucao);
+  auto fim = high_resolution_clock::now();
+  duration<double> tempo = fim - inicio;
+  printSolucaoCSV(solucao, tempo);
   return 0;
 }

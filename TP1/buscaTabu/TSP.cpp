@@ -1,8 +1,10 @@
 #include <bits/stdc++.h>
+#include <chrono>
 #define endl '\n'
 #define INF 0x3f3f3f3f
 
 using namespace std;
+using namespace std::chrono;
 
 vector<vector<int>> grafo;
 vector<vector<int>> coordenadas;
@@ -68,11 +70,22 @@ int calculaCusto(vector<int> caminho) {
   return custo;
 }
 
-void printSolucao(vector<int> solucao) {
+void printSolucaoCSV(vector<int> solucao, duration<double> tempo) {
+  for(int i = 0; i < solucao.size(); i++) {
+    cout << solucao[i]+1 << " ";
+  }
+  cout << solucao[0]+1 << "," << calculaCusto(solucao) << ",";
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
+}
+
+void printSolucao(vector<int> solucao, duration<double> tempo) {
   cout << "Solução: ";
   for(int i = 0; i < solucao.size(); i++) cout << solucao[i] << " ";
   cout << solucao[0] << endl;
   cout << "Custo: " << calculaCusto(solucao) << endl;
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
 }
 
 vector<int> swap(vector<int> array, int i, int j) {
@@ -104,7 +117,7 @@ vector<int> buscaTabu() {
   int melhorCusto = calculaCusto(solucao);
 
   vector<vector<int>> t(grafo.size(), vector<int>(grafo.size(), 0));
-  int duracaoTabu = max(1, (int)(0.2 * grafo.size()));
+  int duracaoTabu = max(1, (int)(0.6 * grafo.size()));
   int it = 0;
   while(it < 1e3) {
     vector<vector<int>> vizinhos = geraVizinhancaOrdenada(solucao);
@@ -127,6 +140,7 @@ vector<int> buscaTabu() {
         }
       k++;
     }
+    //if(melhorTroca.empty()) cout << tem que inspirar
     for(int i = 0; i < t.size(); i++) {
       for(int j = i+1; j < t.size(); j++) {
         if(t[i][j] > 0) t[i][j]--;
@@ -146,7 +160,10 @@ vector<int> buscaTabu() {
 
 int main() {
   lerEntrada();
+  auto inicio = high_resolution_clock::now();
   vector<int> solucao = buscaTabu();
-  printSolucao(solucao);
+  auto fim = high_resolution_clock::now();
+  duration<double> tempo = fim - inicio;
+  printSolucaoCSV(solucao, tempo);
   return 0;
 }

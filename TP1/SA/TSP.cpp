@@ -1,8 +1,10 @@
 #include <bits/stdc++.h>
+#include <chrono>
 #define endl '\n'
 #define INF 0x3f3f3f3f
 
 using namespace std;
+using namespace std::chrono;
 
 vector<vector<int>> grafo;
 vector<vector<int>> coordenadas;
@@ -44,11 +46,22 @@ int calculaCusto(vector<int> caminho) {
   return custo;
 }
 
-void printSolucao(vector<int> solucao) {
+void printSolucaoCSV(vector<int> solucao, duration<double> tempo) {
+  for(int i = 0; i < solucao.size(); i++) {
+    cout << solucao[i]+1 << " ";
+  }
+  cout << solucao[0]+1 << "," << calculaCusto(solucao) << ",";
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
+}
+
+void printSolucao(vector<int> solucao, duration<double> tempo) {
   cout << "Solução: ";
   for(int i = 0; i < solucao.size(); i++) cout << solucao[i] << " ";
   cout << solucao[0] << endl;
   cout << "Custo: " << calculaCusto(solucao) << endl;
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
 }
 
 vector<int> solucaoInicial() {
@@ -111,7 +124,10 @@ vector<int> simulatedAnnealing() {
 
 int main() {
   lerEntrada();
+  auto inicio = high_resolution_clock::now();
   vector<int> solucao = simulatedAnnealing();
-  printSolucao(solucao);
+  auto fim = high_resolution_clock::now();
+  duration<double> tempo = fim - inicio;
+  printSolucaoCSV(solucao, tempo);
   return 0;
 }

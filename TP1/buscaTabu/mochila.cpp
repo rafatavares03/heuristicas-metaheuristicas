@@ -1,7 +1,9 @@
 #include <bits/stdc++.h>
+#include <chrono>
 #define endl '\n'
 
 using namespace std;
+using namespace std::chrono;
 
 int quantidadeDeItens, capacidade, p;
 vector<pair<int, int>> itens;
@@ -58,10 +60,20 @@ int calculaLucro(string solucao) {
   return lucro;
 }
 
-void printSolucao(string solucao) {
+void printSolucaoCSV(string solucao, duration<double> tempo) {
+  cout << "\""<< solucao << "\"," << calculaLucro(solucao) << ",";
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
+}
+
+void printSolucao(string solucao, duration<double> tempo) {
   cout << "Solução: ";
   cout << solucao << endl;
   cout << "Lucro: " << calculaLucro(solucao) << endl;
+  cout << "Capacidade: " << calculaCapacidade(solucao) << endl;
+  cout << "Tempo de processamento: ";
+  cout << fixed << setprecision(3);
+  cout << tempo.count() << endl;
 }
 
 vector<pair<int, int>> geraVizinhancaOrdenada(string solucao) {
@@ -153,7 +165,10 @@ string buscaTabu() {
 
 int main(){
   lerEntrada();
+  auto inicio = high_resolution_clock::now();
   string solucao = buscaTabu();
-  printSolucao(solucao);
+  auto fim = high_resolution_clock::now();
+  duration<double> tempo = fim - inicio;
+  printSolucaoCSV(solucao, tempo);
   return 0;
 }
