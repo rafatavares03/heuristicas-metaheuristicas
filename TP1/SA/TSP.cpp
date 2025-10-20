@@ -6,6 +6,9 @@
 using namespace std;
 using namespace std::chrono;
 
+int config;
+bool outInCSVFormat;
+
 vector<vector<int>> grafo;
 vector<vector<int>> coordenadas;
 
@@ -60,8 +63,9 @@ void printSolucao(vector<int> solucao, duration<double> tempo) {
   for(int i = 0; i < solucao.size(); i++) cout << solucao[i] << " ";
   cout << solucao[0] << endl;
   cout << "Custo: " << calculaCusto(solucao) << endl;
+  cout << "Tempo de processamento: ";
   cout << fixed << setprecision(3);
-  cout << tempo.count() << endl;
+  cout << tempo.count() << " segundos." << endl;
 }
 
 vector<int> solucaoInicial() {
@@ -96,7 +100,7 @@ double random(double lowerbound, double upperbound) {
 vector<int> simulatedAnnealing() {
   vector<int> solucao = solucaoInicial();
   vector<int> melhorSolucao(solucao);
-  double t = 1e5;
+  double t = (config == 1) ? 1e5 : 1e7;
   while(t > 0.01) {
     int i = 0;
     while(i < 100) {
@@ -117,17 +121,38 @@ vector<int> simulatedAnnealing() {
 
       i++;
     }
-    t = 0.90 * t;
+    t *= (config == 1) ? 0.9 : 0.7;
   }
   return melhorSolucao;
 }
 
-int main() {
+void gerenciarConfiguracoes(int argc, char* argv[]){
+  config = 1;
+  outInCSVFormat = false;
+  if(argc > 1) {
+    if(strcmp(argv[1], "2") == 0) {
+      config = 2;
+    }
+  }
+  if(argc > 2) {
+    if(strcmp(argv[2], "1") == 0) {
+      outInCSVFormat = true;
+    }
+  }
+}
+
+int main(int argc, char* argv[]) {
+  gerenciarConfiguracoes(argc, argv);
   lerEntrada();
+
   auto inicio = high_resolution_clock::now();
   vector<int> solucao = simulatedAnnealing();
   auto fim = high_resolution_clock::now();
   duration<double> tempo = fim - inicio;
-  printSolucaoCSV(solucao, tempo);
+  if(outInCSVFormat) {
+    printSolucaoCSV(solucao, tempo);
+  } else {
+    printSolucao(solucao, tempo);
+  }
   return 0;
 }
