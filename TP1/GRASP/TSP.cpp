@@ -97,7 +97,10 @@ vector<int> construcaoGulosaAleatoria(double alpha) {
     for(int i = 0; i < candidatos.size(); i++) {
       aux.push_back(candidatos[i]);
 
-      int custoAux = calculaCusto(aux);
+      int custoAux = 0;
+      for(int k = 0; k < aux.size() - 1; k++) {
+        custoAux += grafo[aux[k]][aux[k + 1]];
+      }
       maior = (custoAux > maior) ? custoAux : maior;
       menor = (custoAux < menor) ? custoAux : menor;
 

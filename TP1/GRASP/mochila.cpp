@@ -38,7 +38,7 @@ int calculaCapacidade(string solucao) {
 }
 
 void printSolucaoCSV(string solucao, duration<double> tempo) {
-  cout << solucao << "," << calculaLucro(solucao) << "," << calculaCapacidade(solucao) << ",";
+  cout << solucao << "," << calculaLucro(solucao) << ",";
   cout << fixed << setprecision(3);
   cout << tempo.count() << endl;
 }
