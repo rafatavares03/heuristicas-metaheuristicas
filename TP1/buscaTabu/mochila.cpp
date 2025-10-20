@@ -5,6 +5,9 @@
 using namespace std;
 using namespace std::chrono;
 
+int config;
+bool maxItStop, outInCSVFormat;
+
 int quantidadeDeItens, capacidade, p;
 vector<pair<int, int>> itens;
 
@@ -61,7 +64,7 @@ int calculaLucro(string solucao) {
 }
 
 void printSolucaoCSV(string solucao, duration<double> tempo) {
-  cout << "\""<< solucao << "\"," << calculaLucro(solucao) << ",";
+  cout << solucao << "," << calculaLucro(solucao) << ",";
   cout << fixed << setprecision(3);
   cout << tempo.count() << endl;
 }
@@ -73,7 +76,7 @@ void printSolucao(string solucao, duration<double> tempo) {
   cout << "Capacidade: " << calculaCapacidade(solucao) << endl;
   cout << "Tempo de processamento: ";
   cout << fixed << setprecision(3);
-  cout << tempo.count() << endl;
+  cout << tempo.count() << " segundos." << endl;
 }
 
 vector<pair<int, int>> geraVizinhancaOrdenada(string solucao) {
@@ -113,11 +116,12 @@ string buscaTabu() {
   string melhorSolucao = solucao;
   int lucro = calculaLucro(solucao);
   int melhorLucro = lucro;
-  int it = 0; // condicao de parada: iteracões sem melhora;
-  int duracaoTabu = max(1, (int)(0.1 * solucao.length()));
+  int it = 0, stop = (maxItStop) ? 1e4 : 100;
+  double dt = (config == 1) ? 0.3 : 0.1;
+  int duracaoTabu = max(1, (int)(dt * solucao.length()));
   vector<int> t(solucao.length(), 0);
 
-  while(it < 100) {
+  while(it < stop) {
     vector<pair<int, int>> vizinhos = geraVizinhancaOrdenada(solucao);
     int melhorVizinho = -1;
     int vizinhoLucro = -1;
@@ -154,21 +158,46 @@ string buscaTabu() {
     if(lucro > melhorLucro) {
       melhorSolucao = solucao;
       melhorLucro = lucro;
-      it = 0;
+      if(maxItStop == false) it = 0;
     } else {
-      it++;
+      if(maxItStop == false) it++;
     }
+    if(maxItStop) it++;
   }
 
   return melhorSolucao;
 }
 
-int main(){
+void gerenciarConfiguracoes(int argc, char* argv[]){
+  config = 1;
+  maxItStop = true;
+  outInCSVFormat = false;
+  if(argc > 1) {
+    if(strcmp(argv[1], "2") == 0) {
+      config = 2;
+      maxItStop = false;
+    }
+  }
+  if(argc > 2) {
+    if(strcmp(argv[2], "1") == 0) {
+      outInCSVFormat = true;
+    }
+  }
+}
+
+int main(int argc, char* argv[]){
+  gerenciarConfiguracoes(argc, argv);
   lerEntrada();
+
   auto inicio = high_resolution_clock::now();
   string solucao = buscaTabu();
   auto fim = high_resolution_clock::now();
   duration<double> tempo = fim - inicio;
-  printSolucaoCSV(solucao, tempo);
+
+  if(!outInCSVFormat) {
+    printSolucao(solucao, tempo);
+  } else {
+    printSolucaoCSV(solucao, tempo);
+  }
   return 0;
 }

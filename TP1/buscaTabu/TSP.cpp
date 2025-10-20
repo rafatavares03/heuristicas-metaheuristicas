@@ -6,6 +6,9 @@
 using namespace std;
 using namespace std::chrono;
 
+int config;
+bool maxItStop, outInCSVFormat;
+
 vector<vector<int>> grafo;
 vector<vector<int>> coordenadas;
 
@@ -84,8 +87,9 @@ void printSolucao(vector<int> solucao, duration<double> tempo) {
   for(int i = 0; i < solucao.size(); i++) cout << solucao[i] << " ";
   cout << solucao[0] << endl;
   cout << "Custo: " << calculaCusto(solucao) << endl;
+  cout << "Tempo de processamento: ";
   cout << fixed << setprecision(3);
-  cout << tempo.count() << endl;
+  cout << tempo.count() << " segundos." << endl;
 }
 
 vector<int> swap(vector<int> array, int i, int j) {
@@ -117,9 +121,10 @@ vector<int> buscaTabu() {
   int melhorCusto = calculaCusto(solucao);
 
   vector<vector<int>> t(grafo.size(), vector<int>(grafo.size(), 0));
-  int duracaoTabu = max(1, (int)(0.6 * grafo.size()));
-  int it = 0;
-  while(it < 1e3) {
+  double dt = (config == 1) ? 0.3 : 0.5;
+  int duracaoTabu = max(1, (int)(dt * grafo.size()));
+  int it = 0, stop = (maxItStop) ? 1e3 : 100;
+  while(it < stop) {
     vector<vector<int>> vizinhos = geraVizinhancaOrdenada(solucao);
     vector<int> melhorTroca;
     int custo = INF;
@@ -151,19 +156,46 @@ vector<int> buscaTabu() {
     if(custo < melhorCusto) {
       melhorSolucao = solucao;
       melhorCusto = custo;
+      if(maxItStop == false) it = 0;
+    } else {
+      if(maxItStop == false) it++;
     }
-    it++;
+    if(maxItStop) it++;
   }
 
   return melhorSolucao;
 }
 
-int main() {
+void gerenciarConfiguracoes(int argc, char* argv[]){
+  config = 1;
+  maxItStop = true;
+  outInCSVFormat = false;
+  if(argc > 1) {
+    if(strcmp(argv[1], "2") == 0) {
+      config = 2;
+      maxItStop = false;
+    }
+  }
+  if(argc > 2) {
+    if(strcmp(argv[2], "1") == 0) {
+      outInCSVFormat = true;
+    }
+  }
+}
+
+int main(int argc, char* argv[]) {
+  gerenciarConfiguracoes(argc, argv);
   lerEntrada();
+
   auto inicio = high_resolution_clock::now();
   vector<int> solucao = buscaTabu();
   auto fim = high_resolution_clock::now();
   duration<double> tempo = fim - inicio;
-  printSolucaoCSV(solucao, tempo);
+
+  if(!outInCSVFormat) {
+    printSolucao(solucao, tempo);
+  } else {
+    printSolucaoCSV(solucao, tempo);
+  }
   return 0;
 }
