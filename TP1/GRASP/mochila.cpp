@@ -6,6 +6,9 @@
 using namespace std;
 using namespace std::chrono;
 
+int config;
+bool maxItStop, outInCSVFormat;
+
 int quantidadeDeItens, capacidade;
 vector<pair<int, int>> itens;
 
@@ -47,7 +50,7 @@ void printSolucao(string solucao, duration<double> tempo) {
   cout << "Capacidade: " << calculaCapacidade(solucao) << endl;
   cout << "Tempo de processamento: ";
   cout << fixed << setprecision(3);
-  cout << tempo.count() << endl;
+  cout << tempo.count() << " segundos." << endl;
 }
 
 int random(int lowerbound, int upperbound) {
@@ -126,24 +129,52 @@ string buscaLocal(string solucao) {
 
 string GRASP() {
   string melhorSolucao;
-  int it = 0;
-  while(it < 100) {
-    string solucao = construcaoGulosaAleatoria(0.9);
+  double alpha = (config == 1) ? 0.9 : 0.7;
+  int it = 0, stop = (!maxItStop) ? 100 : 1000;
+  while(it < stop) {
+    string solucao = construcaoGulosaAleatoria(alpha);
     solucao = buscaLocal(solucao);
     if(calculaLucro(solucao) > calculaLucro(melhorSolucao)) {
       melhorSolucao = solucao;
+      if(!maxItStop) it = 0;
+    } else {
+      if(!maxItStop) it++;
     }
-    it++;
+    if(maxItStop) it++;
   }
   return melhorSolucao;
 }
 
-int main(){
+void gerenciarConfiguracoes(int argc, char* argv[]){
+  config = 1;
+  maxItStop = false;
+  outInCSVFormat = false;
+  if(argc > 1) {
+    if(strcmp(argv[1], "2") == 0) {
+      config = 2;
+      maxItStop = true;
+    }
+  }
+  if(argc > 2) {
+    if(strcmp(argv[2], "1") == 0) {
+      outInCSVFormat = true;
+    }
+  }
+}
+
+int main(int argc, char* argv[]){
+  gerenciarConfiguracoes(argc, argv);
   lerEntrada();
+
   auto inicio = high_resolution_clock::now();
   string solucao = GRASP();
   auto fim = high_resolution_clock::now();
   duration<double> tempo = fim - inicio;
-  printSolucaoCSV(solucao, tempo);
+
+  if(outInCSVFormat) {
+    printSolucaoCSV(solucao, tempo);
+  } else {
+    printSolucao(solucao, tempo);
+  }
   return 0;
 }
