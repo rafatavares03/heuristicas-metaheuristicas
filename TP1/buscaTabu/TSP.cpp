@@ -145,7 +145,19 @@ vector<int> buscaTabu() {
         }
       k++;
     }
-    //if(melhorTroca.empty()) cout << tem que inspirar
+    if(melhorTroca.empty()) {
+      int menor = INF;
+      for(int i = 0; i < t.size(); i++) {
+        for(int j = i+1; j < t[i].size(); j++) {
+          if(t[i][j] < menor) {
+            u = i;
+            v = j;
+            menor = t[i][j];
+          }
+        }
+      }
+      melhorTroca = swap(solucao, u, v);
+    }
     for(int i = 0; i < t.size(); i++) {
       for(int j = i+1; j < t.size(); j++) {
         if(t[i][j] > 0) t[i][j]--;

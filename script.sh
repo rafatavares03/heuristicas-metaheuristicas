@@ -4,7 +4,7 @@ metaheuristicasComAleatoriedade=("GRASP" "SA")
 metaheuristicasSemAleatoriedade=("buscaTabu")
 problemas=("mochila" "TSP")
 
-echo "metaheuristica,problema,configuracao,solucao,funcao_objetivo,tempo" > resultados.csv
+echo "metaheuristica,problema,configuracao,solucao,funcao_objetivo,segundos" > resultados.csv
 
 for problema in "${problemas[@]}"; do 
   for configuracao in $(seq 1 2); do
