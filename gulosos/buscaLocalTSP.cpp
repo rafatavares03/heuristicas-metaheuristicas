@@ -48,7 +48,6 @@ vector<int> solucaoVizinhosDistantes() {
 vector<int> solucaoVizinhosProximos() {
   vector<int> caminho;
   vector<bool> vertices(grafo.size(), false);
-  for(int i = 1; i < grafo.size(); i++) vertices.push_back(i);
   caminho.push_back(0);
   vertices[0] = true;
   while(caminho.size() < grafo.size()) {
