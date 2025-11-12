@@ -5,7 +5,7 @@
 using namespace std;
 using namespace std::chrono;
 
-int quantidadeDeItens, capacidade, p;
+int quantidadeDeItens, capacidade, tamanhoDaPopulacao = 50;
 vector<pair<int, int>> itens;
 
 void lerEntrada() {
@@ -14,9 +14,6 @@ void lerEntrada() {
     int lucro, peso;
     cin >> lucro >> peso;
     itens.push_back({lucro, peso});
-  }
-  for(int i = 0; i < quantidadeDeItens; i++) {
-    p += itens[i].first;
   }
 }
 
@@ -36,7 +33,6 @@ double doubleRandom(double lowerbound, double upperbound) {
   double numero = distrib(eng);
   return numero;
 }
-
 
 string solucaoAleatoria() {
   string solucao;
@@ -61,17 +57,16 @@ int calculaCapacidade(string solucao) {
 
 int calculaLucro(string solucao) {
   int lucro = 0;
-  int solucaoCap = calculaCapacidade(solucao);
   for(int i = 0; i < solucao.length(); i++) {
     if(solucao[i] == '1') lucro += itens[i].first;
   }
-  lucro = lucro - (p * max(0, solucaoCap - capacidade));
+  if(calculaCapacidade(solucao) > capacidade) lucro *= 0.2;
   return lucro;
 }
 
 vector<string> populacaoInicial() {
   vector<string> populacao;
-  for(int i = 0; i < 50; i++) {
+  for(int i = 0; i < tamanhoDaPopulacao; i++) {
     populacao.push_back(solucaoAleatoria());
   }
   return populacao;
@@ -95,17 +90,89 @@ vector<pair<int, double>> fitness(vector<string> populacao) {
   return fit;
 }
 
-pair<string, string> roleta(vector<pair<int, double>> &fitness) {
+void removeElemento(vector<pair<int, double>> &array, int indice) {
+  if (indice >= 0 && indice < array.size()) {
+    array.erase(array.begin() + indice);
+  }
+}
+
+int roleta(vector<pair<int, double>> &fitness) {
   double x = doubleRandom(0,1);
-  vector<string> pais(2);
+  int i = 0;
+  while(i < fitness.size()) {
+    if(x < fitness[i].second) {
+      removeElemento(fitness, i);
+      return fitness[i].first;
+    }
+    i++;
+  }
+  int indice = fitness[0].first;
+  removeElemento(fitness, 0);
+  return indice;
+}
+
+pair<string, string> crossover(string mae, string pai) {
+  int point = random(1, mae.length()-1);
+  string f1 = mae;
+  string f2 = pai;
+  for(int i = 0; i < mae.length(); i++) {
+    if(doubleRandom(0,1) < 0.5) {
+      f1[i] = pai[i];
+      f2[i] = mae[i];
+    }
+  }
+  return make_pair(f1, f2);
+}
+
+void mutacao(vector<string> &populacao) {
+  for(int i = 0; i < populacao.size(); i++) {
+    if(doubleRandom(0,1) <= 0.03) {
+      int gene = random(0, populacao[i].length() - 1);
+      populacao[i][gene] = (populacao[i][gene] == '1') ? '0' : '1';
+    }
+  }
+}
+
+vector<string> sobreviventes(vector<string> populacao, int qtd) {
+  vector<string> s;
+  vector<pair<int, string>> lucros;
+  for(int i = 0; i < populacao.size(); i++) {
+    lucros.push_back({calculaLucro(populacao[i]), populacao[i]});
+  }
+  
+  sort(lucros.begin(), lucros.end(), [](pair<int, string>&a, pair<int, string>&b) {
+    return a.first > b.first;
+  });
+
+  for(int i = 0; i < qtd; i++) {
+    s.push_back(lucros[i].second);
+  }
+
+  return s;
 }
 
 vector<string> AG() {
   vector<string> populacao = populacaoInicial();
   int it = 0;
-  while(it < 1) {
+  while(it < 100) {
     vector<pair<int, double>> fit = fitness(populacao);
+    vector<string> filhos;
 
+    for(int i = 0; i < tamanhoDaPopulacao / 2; i++) {
+      int mae = roleta(fit);
+      int pai = roleta(fit);
+      pair<string, string> f = crossover(populacao[mae], populacao[pai]);
+      filhos.push_back(f.first);
+      filhos.push_back(f.second);
+    }
+    mutacao(filhos);
+
+    int elitismoQtd = (int)round(tamanhoDaPopulacao * 0.3);
+    vector<string> elites = sobreviventes(populacao, elitismoQtd);
+    vector<string> melhoresFilhos = sobreviventes(filhos, tamanhoDaPopulacao - elites.size());
+
+    populacao = elites;
+    populacao.insert(populacao.end(), melhoresFilhos.begin(), melhoresFilhos.end());
     it++;
   }
   return populacao;
@@ -127,17 +194,33 @@ void printSolucao(string solucao, duration<double> tempo) {
   cout << tempo.count() << " segundos." << endl;
 }
 
+string solucao(vector<string> populacao) {
+  vector<pair<int, string>> lucros;
+  for(int i = 0; i < populacao.size(); i++) {
+    lucros.push_back({calculaLucro(populacao[i]), populacao[i]});
+  }
+
+  sort(lucros.begin(), lucros.end(), [](pair<int, string>&a, pair<int, string>&b) {
+    return a.first > b.first;
+  });
+
+  for(int i = 0; i < lucros.size(); i++) {
+    if(calculaCapacidade(lucros[i].second) <= capacidade) {
+      return lucros[i].second;
+    }
+  }
+  return "0";
+}
 
 int main(int argc, char* argv[]){
   lerEntrada();
 
   auto inicio = high_resolution_clock::now();
   vector<string> populacao = AG();
-  for(int i = 0; i < populacao.size(); i++) {
-    cout << populacao[i] << endl;
-  }
+  string melhorSolucao = solucao(populacao);
   auto fim = high_resolution_clock::now();
   duration<double> tempo = fim - inicio;
 
+  printSolucao(melhorSolucao, tempo);
   return 0;
 }
