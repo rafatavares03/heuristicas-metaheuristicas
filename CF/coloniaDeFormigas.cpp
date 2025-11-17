@@ -8,7 +8,7 @@ using namespace std::chrono;
 
 int config;
 bool maxItStop, outInCSVFormat;
-int quantidadeDeFormigas = 20;
+int quantidadeDeFormigas;
 
 double p = 0.01;
 int Q = 10;
@@ -33,6 +33,7 @@ vector<vector<int>> matriz() {
       g[j][i] = peso;
     }
   }
+  quantidadeDeFormigas = g.size();
   return g;
 }
 
@@ -123,7 +124,7 @@ int roleta(int u, vector<int> vertices) {
   return v;
 }
 
-vector<int> caminho() {
+vector<int> geraCaminho() {
   vector<int> vertices;
   vector<int> trilha;
 
@@ -143,28 +144,65 @@ vector<int> caminho() {
   return trilha;
 }
 
+vector<int> melhorCaminho(vector<vector<int>> trilhas) {
+  vector<pair<int, int>> custos;
+  for(int i = 0; i < trilhas.size(); i++) {
+    custos.push_back({i, calculaCusto(trilhas[i])});
+  }
+
+  sort(custos.begin(), custos.end(), [](pair<int, int>&a, pair<int, int>&b) {
+    return a.second < b.second;
+  });
+
+  return trilhas[custos[0].first];
+}
+
 vector<int> coloniaDeFormigas() {
-  vector<vector<double>> f(grafo.size(), vector<double>(grafo.size(), 1));
+  vector<vector<double>> f(grafo.size(), vector<double>(grafo.size(), 0));
   feromonios = f;
   vector<int> melhorSolucao;
+  int melhorCusto = INF;
   int it = 0;
-  while(it < 1) {
+  while(it < 300) {
     vector<vector<int>> formigas;
     for(int i = 0; i < quantidadeDeFormigas; i++) {
-      formigas.push_back(caminho());
+      formigas.push_back(geraCaminho());
     }
+
+    for(int i = 0; i < feromonios.size(); i++) {
+      for(int j = i+1; j < feromonios.size(); j++) {
+        feromonios[i][j] *= (1 - p);
+        feromonios[j][i] *= (1 - p);
+      }
+    }
+
+    vector<int> melhorTrilha = melhorCaminho(formigas);
+    int custo = calculaCusto(melhorTrilha);
+    for(int i = 0; i < melhorTrilha.size()-1; i++) {
+      int u = melhorTrilha[i];
+      int v = melhorTrilha[i+1];
+      double reforco = (double)Q / (double)custo;
+      feromonios[u][v] += reforco;
+      feromonios[v][u] += reforco;
+    }
+    if(custo < melhorCusto) {
+      melhorSolucao = melhorTrilha;
+      melhorCusto = custo;
+    }
+
+    it++;
   }
   return melhorSolucao;
 }
 
 int main(int argc, char* argv[]){
   lerEntrada();
-  auto inicio = high_resolution_clock::now();
 
+  auto inicio = high_resolution_clock::now();
   vector<int> solucao = coloniaDeFormigas();
   auto fim = high_resolution_clock::now();
-  duration<double> tempo = fim - inicio;
 
-  //printSolucao(solucao, tempo);
+  duration<double> tempo = fim - inicio;
+  printSolucao(solucao, tempo);
   return 0;
 }
