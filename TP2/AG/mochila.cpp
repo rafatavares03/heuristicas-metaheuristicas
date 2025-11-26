@@ -5,7 +5,10 @@
 using namespace std;
 using namespace std::chrono;
 
-int quantidadeDeItens, capacidade, tamanhoDaPopulacao = 50;
+int config;
+bool outInCSVFormat;
+int quantidadeDeItens, capacidade, tamanhoDaPopulacao;
+double chanceDeMutacao;
 vector<pair<int, int>> itens;
 
 void lerEntrada() {
@@ -126,7 +129,7 @@ pair<string, string> crossover(string mae, string pai) {
 
 void mutacao(vector<string> &populacao) {
   for(int i = 0; i < populacao.size(); i++) {
-    if(doubleRandom(0,1) <= 0.03) {
+    if(doubleRandom(0,1) <= chanceDeMutacao) {
       int gene = random(0, populacao[i].length() - 1);
       populacao[i][gene] = (populacao[i][gene] == '1') ? '0' : '1';
     }
@@ -212,7 +215,26 @@ string solucao(vector<string> populacao) {
   return "0";
 }
 
+void gerenciarConfiguracoes(int argc, char* argv[]){
+  config = 1;
+  outInCSVFormat = false;
+  if(argc > 1) {
+    if(strcmp(argv[1], "2") == 0) {
+      config = 2;
+    }
+  }
+  if(argc > 2) {
+    if(strcmp(argv[2], "1") == 0) {
+      outInCSVFormat = true;
+    }
+  }
+
+  tamanhoDaPopulacao = (config == 1) ? 50 : 100;
+  chanceDeMutacao = (config == 1) ? 0.1 : 0.03;
+}
+
 int main(int argc, char* argv[]){
+  gerenciarConfiguracoes(argc, argv);
   lerEntrada();
 
   auto inicio = high_resolution_clock::now();
@@ -220,7 +242,10 @@ int main(int argc, char* argv[]){
   string melhorSolucao = solucao(populacao);
   auto fim = high_resolution_clock::now();
   duration<double> tempo = fim - inicio;
-
-  printSolucao(melhorSolucao, tempo);
+  if(outInCSVFormat) {
+    printSolucaoCSV(melhorSolucao, tempo);
+  } else {
+    printSolucao(melhorSolucao, tempo);
+  }
   return 0;
 }

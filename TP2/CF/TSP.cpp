@@ -10,7 +10,7 @@ int config;
 bool maxItStop, outInCSVFormat;
 int quantidadeDeFormigas;
 
-double p = 0.01;
+double p;
 int Q = 10;
 
 vector<vector<int>> grafo;
@@ -33,7 +33,7 @@ vector<vector<int>> matriz() {
       g[j][i] = peso;
     }
   }
-  quantidadeDeFormigas = g.size();
+  quantidadeDeFormigas = (config == 1) ? g.size() : g.size() / 2;
   return g;
 }
 
@@ -158,12 +158,13 @@ vector<int> melhorCaminho(vector<vector<int>> trilhas) {
 }
 
 vector<int> coloniaDeFormigas() {
-  vector<vector<double>> f(grafo.size(), vector<double>(grafo.size(), 0));
+  vector<vector<double>> f(grafo.size(), vector<double>(grafo.size(), 1));
   feromonios = f;
   vector<int> melhorSolucao;
   int melhorCusto = INF;
   int it = 0;
-  while(it < 300) {
+  int itMAX = (config == 1) ? 300 : 500;
+  while(it < itMAX) {
     vector<vector<int>> formigas;
     for(int i = 0; i < quantidadeDeFormigas; i++) {
       formigas.push_back(geraCaminho());
@@ -195,7 +196,26 @@ vector<int> coloniaDeFormigas() {
   return melhorSolucao;
 }
 
+void gerenciarConfiguracoes(int argc, char* argv[]){
+  config = 1;
+  outInCSVFormat = false;
+  if(argc > 1) {
+    if(strcmp(argv[1], "2") == 0) {
+      config = 2;
+    }
+  }
+  if(argc > 2) {
+    if(strcmp(argv[2], "1") == 0) {
+      outInCSVFormat = true;
+    }
+  }
+  
+  p = (config == 1) ? 0.01 : 0.05;
+
+}
+
 int main(int argc, char* argv[]){
+  gerenciarConfiguracoes(argc, argv);
   lerEntrada();
 
   auto inicio = high_resolution_clock::now();
@@ -203,6 +223,10 @@ int main(int argc, char* argv[]){
   auto fim = high_resolution_clock::now();
 
   duration<double> tempo = fim - inicio;
-  printSolucao(solucao, tempo);
+  if(outInCSVFormat) {
+    printSolucaoCSV(solucao, tempo);
+  } else {
+    printSolucao(solucao, tempo);
+  }
   return 0;
 }

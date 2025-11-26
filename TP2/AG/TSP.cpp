@@ -8,7 +8,8 @@ using namespace std::chrono;
 
 int config;
 bool maxItStop, outInCSVFormat;
-int individuosQtd = 100;
+int tamanhoDaPopulacao;
+bool chanceDeMutacao;
 
 vector<vector<int>> grafo;
 vector<vector<int>> coordenadas;
@@ -111,7 +112,7 @@ void printSolucao(vector<int> solucao, duration<double> tempo) {
 
 vector<vector<int>> populacaoInicial() {
   vector<vector<int>> populacao;
-  for(int i = 0; i < individuosQtd; i++) {
+  for(int i = 0; i < tamanhoDaPopulacao; i++) {
     populacao.push_back(solucaoAleatoria());
   }
   return populacao;
@@ -177,7 +178,7 @@ vector<int> crossover(vector<int> &mae, vector<int> &pai) {
 void mutacao(vector<vector<int>> &populacao) {
   for(int i = 0; i < populacao.size(); i++) {
     double x = doubleRandom(0, 1);
-    if(x < 0.4) {
+    if(x < chanceDeMutacao) {
         int v = random(0, populacao[i].size()-1);
         int u = random(0, populacao[i].size()-1);
         swap(populacao[i], u, v);
@@ -215,7 +216,7 @@ vector<vector<int>> AG() {
     vector<pair<int, double>> fit = fitness(populacao);
     vector<vector<int>> filhos;
 
-    for(int i = 0; i < individuosQtd / 2; i++) {
+    for(int i = 0; i < tamanhoDaPopulacao / 2; i++) {
       int mae = roleta(fit);
       int pai = roleta(fit);
 
@@ -224,9 +225,9 @@ vector<vector<int>> AG() {
     }
     mutacao(filhos);
     
-    int elitismoQtd = (int)round(individuosQtd * 0.3);
+    int elitismoQtd = (int)round(tamanhoDaPopulacao * 0.3);
     vector<vector<int>> elites = sobreviventes(populacao, elitismoQtd);
-    vector<vector<int>> melhoresFilhos = sobreviventes(filhos, individuosQtd - elites.size());
+    vector<vector<int>> melhoresFilhos = sobreviventes(filhos, tamanhoDaPopulacao - elites.size());
     
     populacao = elites;
     populacao.insert(populacao.end(), melhoresFilhos.begin(), melhoresFilhos.end());
@@ -234,6 +235,24 @@ vector<vector<int>> AG() {
     it++;
   }
   return populacao;
+}
+
+void gerenciarConfiguracoes(int argc, char* argv[]){
+  config = 1;
+  outInCSVFormat = false;
+  if(argc > 1) {
+    if(strcmp(argv[1], "2") == 0) {
+      config = 2;
+    }
+  }
+  if(argc > 2) {
+    if(strcmp(argv[2], "1") == 0) {
+      outInCSVFormat = true;
+    }
+  }
+
+  tamanhoDaPopulacao = (config == 1) ? 50 : 100;
+  chanceDeMutacao = (config == 1) ? 0.1 : 0.04;
 }
 
 vector<int> melhorSolucao(vector<vector<int>> solucoes) {
@@ -244,6 +263,7 @@ vector<int> melhorSolucao(vector<vector<int>> solucoes) {
 }
 
 int main(int argc, char* argv[]) {
+  gerenciarConfiguracoes(argc, argv);
   lerEntrada();
 
   auto inicio = high_resolution_clock::now();
@@ -251,7 +271,11 @@ int main(int argc, char* argv[]) {
   auto fim = high_resolution_clock::now();
   duration<double> tempo = fim - inicio;
   vector<int> solucao = melhorSolucao(solucoes);
-  printSolucao(solucao, tempo);
+  if(outInCSVFormat) {
+    printSolucaoCSV(solucao, tempo);
+  } else {
+    printSolucao(solucao, tempo);
+  }
 
   return 0;
 }
